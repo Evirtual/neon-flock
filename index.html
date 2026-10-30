@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neon Flock</title>
+<style>
+  html,body{margin:0;height:100%;background:#05060f;overflow:hidden;font-family:system-ui,sans-serif;color:#cfe}
+  canvas{display:block;width:100vw;height:100vh;cursor:crosshair}
+  #ui{position:fixed;top:12px;left:12px;background:#0008;padding:10px 14px;border:1px solid #3ff4;border-radius:10px;font-size:13px;backdrop-filter:blur(6px)}
+  #ui label{display:block;margin:4px 0}
+  #ui input{vertical-align:middle}
+  h1{font-size:15px;margin:0 0 6px;color:#5ff}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui">
+  <h1>Neon Flock</h1>
+  <label>Boids <input id="count" type="range" min="50" max="1200" value="400"></label>
+  <label>Cohesion <input id="coh" type="range" min="0" max="100" value="40"></label>
+  <label>Separation <input id="sep" type="range" min="0" max="100" value="60"></label>
+  <label>Alignment <input id="ali" type="range" min="0" max="100" value="50"></label>
+  <div>Move mouse to attract · hold click to repel</div>
+</div>
+<script src="flock.js"></script>
+</body>
+</html>
