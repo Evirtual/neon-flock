@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Particle Text</title>
+<style>
+  html,body{margin:0;height:100%;background:#05060f;overflow:hidden;font-family:system-ui,sans-serif;color:#cfe}
+  canvas{display:block;width:100vw;height:100vh}
+  .box{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;opacity:.9}
+  input{all:unset;width:min(320px,70vw);text-align:center;padding:10px 18px;background:#0008;border:1px solid #3ff5;border-radius:999px;font-size:16px;color:#fff;backdrop-filter:blur(8px);transition:box-shadow .3s,border-color .3s}
+  input:focus{border-color:#5ff;box-shadow:0 0 28px #3ff5}
+  small{opacity:.55}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="box"><input id="txt" value="EVIRTUAL" maxlength="16" spellcheck="false" aria-label="Text"><small>Type anything · particles morph into it · move the mouse to scatter · click to explode</small></div>
+<script>
+const c = document.getElementById('c'), ctx = c.getContext('2d');
+const input = document.getElementById('txt');
+let W, H, P = [];
+const mouse = { x: -1e4, y: -1e4 };
+
+function build() {
+  const off = document.createElement('canvas');
+  off.width = W; off.height = H;
+  const o = off.getContext('2d');
+  const text = input.value || ' ';
+  let fs = Math.min(H * 0.35, 260);
+  o.font = `800 ${fs}px system-ui,sans-serif`;
+  while (o.measureText(text).width > W * 0.9 && fs > 20) { fs -= 4; o.font = `800 ${fs}px system-ui,sans-serif`; }
+  o.textAlign = 'center'; o.textBaseline = 'middle'; o.fillStyle = '#fff';
+  o.fillText(text, W / 2, H / 2 - 20);
+  const data = o.getImageData(0, 0, W, H).data;
+  const gap = W < 700 ? 4 : 3, pts = [];
+  for (let y = 0; y < H; y += gap)
+    for (let x = 0; x < W; x += gap)
+      if (data[(y * W + x) * 4 + 3] > 128) pts.push([x, y]);
+  for (let i = pts.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [pts[i], pts[j]] = [pts[j], pts[i]]; }
+  // reuse existing particles so changing the text morphs instead of resetting
+  while (P.length < pts.length) P.push({ x: Math.random() * W, y: Math.random() * H, vx: 0, vy: 0, tx: 0, ty: 0, col: '' });
+  P.length = pts.length;
+  pts.forEach(([x, y], i) => {
+    const p = P[i];
+    p.tx = x; p.ty = y;
+    p.col = `hsl(${(x / W * 200 + 160) % 360},100%,${55 + Math.random() * 20}%)`;
+  });
+}
+
+function resize() {
+  const d = Math.min(devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight;
+  c.width = W * d; c.height = H * d;
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+  build();
+}
+addEventListener('resize', resize);
+let timer;
+input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(build, 120); });
+addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+addEventListener('pointerleave', () => { mouse.x = mouse.y = -1e4; });
+addEventListener('pointerdown', e => {
+  if (e.target === input) return;
+  for (const p of P) {
+    const dx = p.x - e.clientX, dy = p.y - e.clientY, d = Math.hypot(dx, dy) + 1;
+    if (d < 260) { const f = (1 - d / 260) * 28; p.vx += dx / d * f + (Math.random() - .5) * 6; p.vy += dy / d * f + (Math.random() - .5) * 6; }
+  }
+});
+
+function loop() {
+  ctx.fillStyle = 'rgba(5,6,15,0.3)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of P) {
+    p.vx += (p.tx - p.x) * 0.035; p.vy += (p.ty - p.y) * 0.035;
+    const dx = p.x - mouse.x, dy = p.y - mouse.y, d2 = dx * dx + dy * dy;
+    if (d2 < 14000) { const d = Math.sqrt(d2) + 1, f = (1 - d / 118) * 3.2; p.vx += dx / d * f; p.vy += dy / d * f; }
+    p.vx *= 0.88; p.vy *= 0.88;
+    p.x += p.vx; p.y += p.vy;
+    ctx.fillStyle = p.col;
+    ctx.fillRect(p.x, p.y, 2.2, 2.2);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  requestAnimationFrame(loop);
+}
+resize();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
