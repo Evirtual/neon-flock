@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://evirtual.github.io/neon-flock/sitemap.xml
