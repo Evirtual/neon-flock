@@ -3,35 +3,70 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Neon Flock</title>
+<title>Visual Lab</title>
 <style>
-  @view-transition { navigation: auto; }
   html,body{margin:0;height:100%;background:#05060f;overflow:hidden;font-family:system-ui,sans-serif;color:#cfe}
-  canvas{display:block;width:100vw;height:100vh;cursor:crosshair;animation:fadein 1.6s ease both}
-  @keyframes fadein{from{opacity:0;filter:blur(20px);transform:scale(1.06)}to{opacity:1;filter:none;transform:none}}
-  @keyframes slidein{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:none}}
-  #ui{position:fixed;top:12px;left:12px;background:#0008;padding:10px 14px;border:1px solid #3ff4;border-radius:10px;font-size:13px;backdrop-filter:blur(6px);
-    animation:slidein .8s .5s cubic-bezier(.2,.9,.3,1.2) both;transition:box-shadow .4s,border-color .4s}
-  #ui:hover{border-color:#3ffb;box-shadow:0 0 28px #3ff4}
-  #ui label{display:block;margin:4px 0}
-  #ui input{vertical-align:middle;accent-color:#3ff}
-  h1{font-size:15px;margin:0 0 6px;color:#5ff}
-  a.nav{display:inline-block;margin-top:8px;padding:6px 12px;border:1px solid #3ff6;border-radius:999px;color:#5ff;text-decoration:none;transition:background .3s,transform .3s,box-shadow .3s}
-  a.nav:hover{background:#3ff3;transform:translateY(-2px);box-shadow:0 6px 20px #3ff3}
-  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  nav{position:fixed;z-index:10;left:50%;top:14px;transform:translateX(-50%);display:flex;gap:4px;padding:5px;background:#000a;border:1px solid #fff2;border-radius:999px;backdrop-filter:blur(10px);animation:drop .9s cubic-bezier(.2,.9,.3,1.2) both}
+  @keyframes drop{from{opacity:0;transform:translate(-50%,-30px)}to{opacity:1;transform:translate(-50%,0)}}
+  nav button{all:unset;cursor:pointer;padding:8px 16px;border-radius:999px;font-size:13px;color:#cfe9;position:relative;z-index:1;transition:color .3s}
+  nav button:hover{color:#fff}
+  nav button.on{color:#000}
+  #pill{position:absolute;top:5px;bottom:5px;left:0;width:0;background:linear-gradient(90deg,#5ff,#a6f);border-radius:999px;transition:transform .5s cubic-bezier(.2,.9,.3,1),width .5s cubic-bezier(.2,.9,.3,1);box-shadow:0 0 24px #5ff6}
+  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;opacity:0;filter:blur(14px);transform:scale(1.04);pointer-events:none;transition:opacity .7s ease,filter .7s ease,transform .7s ease}
+  iframe.on{opacity:1;filter:none;transform:none;pointer-events:auto}
+  #hint{position:fixed;z-index:10;bottom:12px;left:50%;transform:translateX(-50%);font-size:12px;opacity:.5}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
-<div id="ui">
-  <h1>Neon Flock</h1>
-  <label>Boids <input id="count" type="range" min="50" max="1200" value="400"></label>
-  <label>Cohesion <input id="coh" type="range" min="0" max="100" value="40"></label>
-  <label>Separation <input id="sep" type="range" min="0" max="100" value="60"></label>
-  <label>Alignment <input id="ali" type="range" min="0" max="100" value="50"></label>
-  <div>Move mouse to attract · hold click to repel</div>
-  <a class="nav" href="shader.html">GPU shader demo →</a>
-</div>
-<script src="flock.js"></script>
+<nav id="nav"><span id="pill"></span></nav>
+<div id="stage"></div>
+<div id="hint">Click a tab or press 1–4</div>
+<script>
+const demos = [
+  { id: 'flock',  label: 'Flock',        src: 'flock.html' },
+  { id: 'shader', label: 'GPU Shader',   src: 'shader.html' },
+  { id: 'three',  label: 'Three.js 3D',  src: 'three.html' },
+  { id: 'css',    label: 'Pure CSS',     src: 'css.html' },
+];
+const nav = document.getElementById('nav'), stage = document.getElementById('stage'), pill = document.getElementById('pill');
+const frames = {}, buttons = {};
+
+function movePill(btn) {
+  pill.style.width = btn.offsetWidth + 'px';
+  pill.style.transform = `translateX(${btn.offsetLeft}px)`;
+}
+
+function show(id) {
+  const d = demos.find(x => x.id === id) || demos[0];
+  for (const x of demos) {
+    buttons[x.id].classList.toggle('on', x === d);
+    if (frames[x.id]) frames[x.id].classList.toggle('on', x === d);
+  }
+  if (!frames[d.id]) {
+    const f = document.createElement('iframe');
+    f.src = d.src;
+    f.title = d.label;
+    // demo pages link back to this hub; hide that link when embedded
+    f.addEventListener('load', () => { f.contentDocument?.querySelector('.box a')?.remove(); });
+    stage.appendChild(f);
+    frames[d.id] = f;
+    requestAnimationFrame(() => requestAnimationFrame(() => f.classList.add('on')));
+  }
+  movePill(buttons[d.id]);
+  history.replaceState(null, '', '#' + d.id);
+}
+
+demos.forEach((d, i) => {
+  const b = document.createElement('button');
+  b.textContent = d.label;
+  b.onclick = () => show(d.id);
+  nav.appendChild(b);
+  buttons[d.id] = b;
+});
+addEventListener('keydown', e => { const d = demos[+e.key - 1]; if (d) show(d.id); });
+addEventListener('resize', () => { const on = nav.querySelector('.on'); if (on) movePill(on); });
+document.fonts.ready.then(() => show(location.hash.slice(1)));
+</script>
 </body>
 </html>

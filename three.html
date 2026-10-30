@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Three.js Galaxy</title>
+<style>
+  html,body{margin:0;height:100%;background:#02030a;overflow:hidden;font-family:system-ui,sans-serif;color:#cfe}
+  canvas{display:block}
+  #msg{position:fixed;left:16px;top:70px;padding:10px 14px;background:#0007;border:1px solid #fff3;border-radius:12px;font-size:13px;backdrop-filter:blur(8px)}
+</style>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}</script>
+</head>
+<body>
+<div id="msg">Three.js · 80,000 GPU particles · move the mouse to orbit</div>
+<script type="module">
+import * as THREE from 'three';
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(0, 3.2, 6.5);
+
+const N = 80000, pos = new Float32Array(N * 3), col = new Float32Array(N * 3);
+const inner = new THREE.Color('#ffb36b'), outer = new THREE.Color('#5a7bff'), c = new THREE.Color();
+for (let i = 0; i < N; i++) {
+  const r = Math.pow(Math.random(), 1.6) * 6;
+  const arm = (i % 4) / 4 * Math.PI * 2;
+  const a = arm + r * 0.9;
+  const spread = (Math.random() - 0.5) * 0.35 * (0.4 + r * 0.25);
+  pos[i * 3]     = Math.cos(a) * r + spread * (Math.random() - 0.5) * 3;
+  pos[i * 3 + 1] = (Math.random() - 0.5) * 0.35 * Math.exp(-r * 0.3);
+  pos[i * 3 + 2] = Math.sin(a) * r + spread * (Math.random() - 0.5) * 3;
+  c.copy(inner).lerp(outer, r / 6);
+  col.set([c.r, c.g, c.b], i * 3);
+}
+const geo = new THREE.BufferGeometry();
+geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+const mat = new THREE.PointsMaterial({ size: 0.02, vertexColors: true, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
+const galaxy = new THREE.Points(geo, mat);
+scene.add(galaxy);
+
+const m = { x: 0, y: 0, tx: 0, ty: 0 };
+addEventListener('pointermove', e => { m.tx = e.clientX / innerWidth - 0.5; m.ty = e.clientY / innerHeight - 0.5; });
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+renderer.setAnimationLoop(t => {
+  m.x += (m.tx - m.x) * 0.05; m.y += (m.ty - m.y) * 0.05;
+  galaxy.rotation.y = t * 0.00008;
+  camera.position.x = Math.sin(m.x * 3) * 7;
+  camera.position.z = Math.cos(m.x * 3) * 7;
+  camera.position.y = 1.5 + m.y * 8;
+  camera.lookAt(0, 0, 0);
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>
