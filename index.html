@@ -48,19 +48,22 @@ function movePill(btn) {
 
 function show(id) {
   const d = demos.find(x => x.id === id) || demos[0];
+  if (current === d.id && frames[d.id]) return;
   current = d.id;
-  for (const x of demos) {
-    buttons[x.id].classList.toggle('on', x === d);
-    if (frames[x.id]) frames[x.id].classList.toggle('on', x === d);
+  for (const x of demos) buttons[x.id].classList.toggle('on', x === d);
+  // only one demo runs at a time: fade the old one out, then destroy it to free the GPU
+  for (const k in frames) {
+    const old = frames[k];
+    delete frames[k];
+    old.classList.remove('on');
+    setTimeout(() => { old.src = 'about:blank'; old.remove(); }, 750);
   }
-  if (!frames[d.id]) {
-    const f = document.createElement('iframe');
-    f.src = d.src + '?v=1793328575';
-    f.title = d.label;
-    stage.appendChild(f);
-    frames[d.id] = f;
-    requestAnimationFrame(() => requestAnimationFrame(() => f.classList.add('on')));
-  }
+  const f = document.createElement('iframe');
+  f.src = d.src + '?v=1793328575';
+  f.title = d.label;
+  stage.appendChild(f);
+  frames[d.id] = f;
+  requestAnimationFrame(() => requestAnimationFrame(() => f.classList.add('on')));
   movePill(buttons[d.id]);
   buttons[d.id].scrollIntoView({ inline: 'center', block: 'nearest' });
   history.replaceState(null, '', '#' + d.id);
