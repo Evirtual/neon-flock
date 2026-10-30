@@ -10,19 +10,30 @@
   #ui{position:fixed;top:70px;left:12px;background:#0008;padding:10px 14px;border:1px solid #3ff4;border-radius:10px;font-size:13px;backdrop-filter:blur(6px);transition:box-shadow .4s,border-color .4s}
   #ui:hover{border-color:#3ffb;box-shadow:0 0 28px #3ff4}
   #ui label{display:block;margin:4px 0}
-  #ui input{vertical-align:middle;accent-color:#3ff}
+  #ui input[type=range]{vertical-align:middle;accent-color:#3ff}
   h1{font-size:15px;margin:0 0 6px;color:#5ff}
+  .themes{display:flex;gap:6px;margin:8px 0}
+  .themes button{all:unset;cursor:pointer;padding:5px 12px;border:1px solid #3ff5;border-radius:999px;transition:background .3s,color .3s}
+  .themes button:hover{background:#3ff2}
+  .themes button.on{background:#5ff;color:#000}
+  .hint{opacity:.65;margin-top:6px}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="ui">
   <h1>Neon Flock</h1>
-  <label>Boids <input id="count" type="range" min="50" max="1200" value="400"></label>
+  <div class="themes">
+    <button data-theme="neon" class="on">Neon</button>
+    <button data-theme="aurora">Aurora</button>
+    <button data-theme="ember">Ember</button>
+  </div>
+  <label>Boids <input id="count" type="range" min="50" max="1200" value="500"></label>
   <label>Cohesion <input id="coh" type="range" min="0" max="100" value="40"></label>
   <label>Separation <input id="sep" type="range" min="0" max="100" value="60"></label>
   <label>Alignment <input id="ali" type="range" min="0" max="100" value="50"></label>
-  <div>Move mouse to attract · hold click to repel</div>
+  <label><input id="hunter" type="checkbox" checked> Predator</label>
+  <div class="hint">Move to attract · click for a shockwave</div>
 </div>
 <script src="flock.js"></script>
 </body>
