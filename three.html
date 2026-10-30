@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Galaxies</title>
+<style>
+  html,body{margin:0;height:100%;background:#02030a;overflow:hidden;font-family:system-ui,sans-serif;color:#cfe}
+  canvas{display:block}
+  #ui{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:12px;width:min(520px,92vw)}
+  .sw{display:flex;gap:4px;padding:4px;background:#000a;border:1px solid #fff2;border-radius:999px;backdrop-filter:blur(10px)}
+  .sw button{all:unset;cursor:pointer;padding:9px 20px;border-radius:999px;font-size:14px;color:#cfe9;transition:background .4s,color .4s,box-shadow .4s}
+  .sw button:hover{color:#fff}
+  .sw button.on{background:linear-gradient(90deg,#ffb36b,#ff7ab0);color:#000;box-shadow:0 0 22px #ff9a7a77}
+  .sw button#b-andromeda.on{background:linear-gradient(90deg,#7ab8ff,#b58cff);box-shadow:0 0 22px #8aa4ff77}
+  #info{text-align:center;padding:12px 18px;background:#0008;border:1px solid #fff2;border-radius:16px;backdrop-filter:blur(10px);transition:opacity .35s,transform .35s}
+  #info.swap{opacity:0;transform:translateY(8px)}
+  #title{font-size:17px;color:#fff;margin-bottom:4px}
+  #desc{font-size:13px;line-height:1.45;opacity:.75}
+  #hint{position:fixed;left:16px;top:70px;font-size:12px;opacity:.5}
+</style>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}</script>
+</head>
+<body>
+<div id="hint">Move the mouse to orbit · scroll to zoom</div>
+<div id="ui">
+  <div class="sw"><button id="b-milky" class="on">Milky Way</button><button id="b-andromeda">Andromeda</button></div>
+  <div id="info"><div id="title"></div><div id="desc"></div></div>
+</div>
+<script type="module" src="galaxy.js?v=1793328575"></script>
+</body>
+</html>
