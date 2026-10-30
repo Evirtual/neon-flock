@@ -3,39 +3,163 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pure CSS</title>
+<title>CSS Playground</title>
 <style>
-  html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,sans-serif;color:#fff;background:#0a0a1f}
-  .bg{position:fixed;inset:-20%;filter:blur(60px) saturate(1.5)}
-  .bg i{position:absolute;width:45vmax;height:45vmax;border-radius:50%;opacity:.8;animation:float 18s ease-in-out infinite alternate}
-  .bg i:nth-child(1){background:#ff3d81;left:5%;top:0}
-  .bg i:nth-child(2){background:#3d7bff;right:0;top:20%;animation-duration:23s;animation-delay:-6s}
-  .bg i:nth-child(3){background:#35f2c0;left:30%;bottom:-10%;animation-duration:27s;animation-delay:-12s}
-  @keyframes float{0%{transform:translate(0,0) scale(1)}50%{transform:translate(12vw,-8vh) scale(1.25)}100%{transform:translate(-10vw,10vh) scale(.9)}}
-  main{position:relative;height:100%;display:grid;place-items:center}
-  .cards{display:grid;grid-template-columns:repeat(3,200px);gap:20px;perspective:900px}
-  .card{height:260px;border-radius:22px;background:#ffffff14;border:1px solid #ffffff30;backdrop-filter:blur(18px);display:grid;place-items:center;font-size:20px;letter-spacing:.04em;
-    animation:rise .9s cubic-bezier(.2,.9,.3,1.2) both;transition:transform .6s cubic-bezier(.2,.9,.3,1),box-shadow .6s,background .6s}
-  .card:nth-child(2){animation-delay:.12s}.card:nth-child(3){animation-delay:.24s}
-  @keyframes rise{from{opacity:0;transform:translateY(60px) rotateX(25deg)}to{opacity:1;transform:none}}
-  .card:hover{transform:translateY(-14px) rotateY(-10deg) scale(1.05);background:#ffffff26;box-shadow:0 30px 60px #0008,0 0 40px #ffffff22}
-  .card::before{content:"";position:absolute;width:90px;height:90px;border-radius:50%;margin-top:-110px;background:conic-gradient(from 0deg,#ff3d81,#ffd23d,#35f2c0,#3d7bff,#ff3d81);animation:spin 6s linear infinite;mask:radial-gradient(circle,transparent 55%,#000 57%)}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .card span{margin-top:90px}
-  h1{position:fixed;top:70px;width:100%;text-align:center;margin:0;font-weight:300;font-size:14px;opacity:.7;letter-spacing:.3em;text-transform:uppercase}
-  @media (max-width:760px){.cards{grid-template-columns:1fr;width:220px}.card{height:120px}}
-  @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+  @property --h { syntax: '<number>'; inherits: true; initial-value: 320; }
+  @property --a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+
+  :root { --h: 320; transition: --h 1.2s ease; }
+  :root:has(#t2:checked) { --h: 200; }
+  :root:has(#t3:checked) { --h: 140; }
+  :root:has(#t4:checked) { --h: 40; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; font-family: system-ui, sans-serif; color: #fff; background: hsl(var(--h) 60% 6%); transition: background 1.2s; }
+  input.t { position: absolute; opacity: 0; pointer-events: none; }
+
+  .bg { position: fixed; inset: -20%; filter: blur(70px) saturate(1.4); transform: translate(calc(var(--mx, 0) * -30px), calc(var(--my, 0) * -30px)); transition: transform .4s ease-out; }
+  .bg i { position: absolute; width: 45vmax; height: 45vmax; border-radius: 50%; opacity: .75; animation: float 20s ease-in-out infinite alternate; }
+  .bg i:nth-child(1) { background: hsl(var(--h) 95% 60%); left: 5%; top: 0; }
+  .bg i:nth-child(2) { background: hsl(calc(var(--h) + 70) 95% 60%); right: 0; top: 20%; animation-duration: 25s; animation-delay: -6s; }
+  .bg i:nth-child(3) { background: hsl(calc(var(--h) - 60) 95% 55%); left: 30%; bottom: -10%; animation-duration: 29s; animation-delay: -12s; }
+  @keyframes float { 0% { transform: translate(0,0) scale(1); } 50% { transform: translate(12vw,-8vh) scale(1.25); } 100% { transform: translate(-10vw,10vh) scale(.9); } }
+
+  .spot { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(420px circle at var(--cx, 50%) var(--cy, 50%), hsl(var(--h) 100% 80% / .18), transparent 60%); mix-blend-mode: screen; }
+  .cursor { position: fixed; left: 0; top: 0; width: 34px; height: 34px; margin: -17px 0 0 -17px; border: 1.5px solid #fff9; border-radius: 50%; pointer-events: none; z-index: 20; transition: width .25s, height .25s, margin .25s, background .25s; mix-blend-mode: difference; }
+  .cursor.big { width: 70px; height: 70px; margin: -35px 0 0 -35px; background: #fff3; }
+
+  h1 { position: fixed; top: 70px; width: 100%; margin: 0; text-align: center; font-weight: 300; font-size: 14px; letter-spacing: .3em; text-transform: uppercase; opacity: .75; }
+  h1 small { display: block; letter-spacing: .08em; text-transform: none; opacity: .6; margin-top: 6px; font-size: 12px; }
+
+  main { position: relative; height: 100%; display: grid; place-items: center; }
+  .grid { display: grid; grid-template-columns: repeat(3, 210px); gap: 22px; margin-top: 40px; perspective: 1100px; }
+  .card { position: relative; height: 230px; cursor: pointer; transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .25s ease-out; animation: rise .9s cubic-bezier(.2,.9,.3,1.2) both; }
+  .card:nth-child(2) { animation-delay: .08s; } .card:nth-child(3) { animation-delay: .16s; }
+  .card:nth-child(4) { animation-delay: .24s; } .card:nth-child(5) { animation-delay: .32s; } .card:nth-child(6) { animation-delay: .4s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(70px) rotateX(30deg); } }
+  .in { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .8s cubic-bezier(.2,.9,.3,1.1); }
+  .card.flip .in { transform: rotateY(180deg); }
+  .face { position: absolute; inset: 0; border-radius: 22px; backface-visibility: hidden; overflow: hidden; background: #ffffff14; border: 1px solid #ffffff30; backdrop-filter: blur(18px); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding: 18px; gap: 4px; box-shadow: 0 20px 50px #0006; }
+  .face.back { transform: rotateY(180deg); justify-content: center; align-items: stretch; }
+  .face::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; background: conic-gradient(from var(--a), transparent 0 60%, hsl(var(--h) 100% 75%) 80%, transparent 100%); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; -webkit-mask-composite: xor; opacity: 0; transition: opacity .4s; animation: spin 3s linear infinite; }
+  .card:hover .face::before { opacity: 1; }
+  .face::after { content: ""; position: absolute; inset: 0; background: radial-gradient(220px circle at var(--px, 50%) var(--py, 50%), #ffffff40, transparent 60%); opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .card:hover .face::after { opacity: 1; }
+  @keyframes spin { to { --a: 360deg; } }
+  .name { font-size: 18px; letter-spacing: .04em; } .sub { font-size: 12px; opacity: .6; }
+  .art { position: absolute; top: 0; left: 0; right: 0; height: 150px; display: grid; place-items: center; transform: translateZ(40px); }
+  pre { margin: 0; font: 12px/1.55 ui-monospace, Consolas, monospace; color: #dff; white-space: pre-wrap; }
+  pre b { color: hsl(var(--h) 100% 78%); font-weight: 400; }
+
+  /* art: blur */
+  .blur i { position: absolute; width: 64px; height: 64px; border-radius: 50%; mix-blend-mode: screen; transition: transform .6s, filter .6s; }
+  .blur i:nth-child(1) { background: hsl(var(--h) 100% 60%); transform: translate(-22px, -8px); }
+  .blur i:nth-child(2) { background: hsl(calc(var(--h) + 80) 100% 60%); transform: translate(22px, -8px); }
+  .blur i:nth-child(3) { background: hsl(calc(var(--h) - 80) 100% 60%); transform: translate(0, 20px); }
+  .card:hover .blur i:nth-child(1) { transform: translate(-40px, -22px); filter: blur(5px); }
+  .card:hover .blur i:nth-child(2) { transform: translate(40px, -22px); filter: blur(5px); }
+  .card:hover .blur i:nth-child(3) { transform: translate(0, 38px); filter: blur(5px); }
+  /* art: depth */
+  .depth { transform-style: preserve-3d; }
+  .depth i { position: absolute; width: 90px; height: 90px; border-radius: 18px; border: 2px solid hsl(var(--h) 100% 75%); background: hsl(var(--h) 100% 60% / .12); transition: transform .6s cubic-bezier(.2,.9,.3,1.2); }
+  .depth i:nth-child(1) { transform: translateZ(0); } .depth i:nth-child(2) { transform: translateZ(14px); } .depth i:nth-child(3) { transform: translateZ(28px); }
+  .card:hover .depth i:nth-child(1) { transform: translateZ(-20px) rotate(-12deg); }
+  .card:hover .depth i:nth-child(2) { transform: translateZ(30px) rotate(0deg); }
+  .card:hover .depth i:nth-child(3) { transform: translateZ(80px) rotate(14deg); }
+  /* art: orbit */
+  .orbit i { position: absolute; border: 1px dashed #ffffff55; border-radius: 50%; }
+  .orbit i:nth-child(1) { width: 60px; height: 60px; animation: spin2 2.4s linear infinite; }
+  .orbit i:nth-child(2) { width: 100px; height: 100px; animation: spin2 4s linear infinite reverse; }
+  .orbit i:nth-child(3) { width: 140px; height: 140px; animation: spin2 6.5s linear infinite; }
+  .orbit i::after { content: ""; position: absolute; top: -5px; left: 50%; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: hsl(var(--h) 100% 75%); box-shadow: 0 0 14px hsl(var(--h) 100% 70%); }
+  .card:hover .orbit i { animation-duration: .8s; }
+  @keyframes spin2 { to { transform: rotate(360deg); } }
+  /* art: glow */
+  .glow i { width: 76px; height: 76px; border-radius: 50%; border: 3px solid hsl(var(--h) 100% 78%); box-shadow: 0 0 20px hsl(var(--h) 100% 65%), inset 0 0 20px hsl(var(--h) 100% 65%); animation: pulse 2s ease-in-out infinite; transition: transform .4s; }
+  .card:hover .glow i { transform: scale(1.35); animation-duration: .9s; }
+  @keyframes pulse { 50% { box-shadow: 0 0 44px hsl(var(--h) 100% 65%), inset 0 0 34px hsl(var(--h) 100% 65%); } }
+  /* art: morph */
+  .morph i { width: 96px; height: 96px; background: linear-gradient(135deg, hsl(var(--h) 100% 65%), hsl(calc(var(--h) + 70) 100% 65%)); animation: morph 6s ease-in-out infinite; }
+  .card:hover .morph i { animation-duration: 1.6s; }
+  @keyframes morph { 0%,100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; } 50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; transform: rotate(120deg); } }
+  /* art: gradient */
+  .grad i { width: 100px; height: 100px; border-radius: 50%; background: conic-gradient(from var(--a), hsl(var(--h) 100% 60%), hsl(calc(var(--h) + 90) 100% 60%), hsl(calc(var(--h) + 180) 100% 60%), hsl(var(--h) 100% 60%)); mask: radial-gradient(circle, transparent 52%, #000 54%); animation: spin 5s linear infinite; }
+  .card:hover .grad i { animation-duration: 1s; }
+
+  .themes { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; align-items: center; padding: 8px 14px; background: #0007; border: 1px solid #fff3; border-radius: 999px; backdrop-filter: blur(12px); font-size: 12px; }
+  .themes label { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid #fff6; transition: transform .3s, box-shadow .3s; }
+  .themes label:hover { transform: scale(1.25); }
+  .themes label[for=t1] { background: hsl(320 95% 60%); } .themes label[for=t2] { background: hsl(200 95% 60%); }
+  .themes label[for=t3] { background: hsl(140 95% 55%); } .themes label[for=t4] { background: hsl(40 95% 58%); }
+  :root:has(#t1:checked) label[for=t1], :root:has(#t2:checked) label[for=t2], :root:has(#t3:checked) label[for=t3], :root:has(#t4:checked) label[for=t4] { box-shadow: 0 0 0 3px #0008, 0 0 0 5px #fff; }
+  @media (max-width: 760px) { .grid { grid-template-columns: repeat(2, 150px); gap: 12px; } .card { height: 180px; } .art { transform: scale(.7) translateZ(40px); height: 110px; } .cursor, .spot { display: none; } }
+  @media (max-height: 640px) { h1 { display: none; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
+<input class="t" type="radio" name="theme" id="t1" checked><input class="t" type="radio" name="theme" id="t2"><input class="t" type="radio" name="theme" id="t3"><input class="t" type="radio" name="theme" id="t4">
 <div class="bg"><i></i><i></i><i></i></div>
-<h1>Pure CSS · zero JavaScript</h1>
+<div class="spot"></div>
+<div class="cursor"></div>
+<h1>CSS Playground<small>Hover for 3D tilt · click a card to flip it and see the CSS · pick a theme below</small></h1>
 <main>
-  <div class="cards">
-    <div class="card"><span>Blur</span></div>
-    <div class="card"><span>Depth</span></div>
-    <div class="card"><span>Motion</span></div>
+  <div class="grid">
+    <div class="card"><div class="in"><div class="face"><div class="art blur"><i></i><i></i><i></i></div><div class="name">Blend</div><div class="sub">mix-blend-mode</div></div>
+      <div class="face back"><pre><b>mix-blend-mode</b>: screen;
+<b>filter</b>: blur(5px);
+<b>transition</b>: transform .6s;</pre></div></div></div>
+    <div class="card"><div class="in"><div class="face"><div class="art depth"><i></i><i></i><i></i></div><div class="name">Depth</div><div class="sub">translateZ layers</div></div>
+      <div class="face back"><pre><b>transform-style</b>: preserve-3d;
+<b>transform</b>: translateZ(80px)
+  rotate(14deg);</pre></div></div></div>
+    <div class="card"><div class="in"><div class="face"><div class="art orbit"><i></i><i></i><i></i></div><div class="name">Orbit</div><div class="sub">keyframes</div></div>
+      <div class="face back"><pre>@<b>keyframes</b> spin {
+  to { <b>transform</b>:
+    rotate(360deg); }
+}</pre></div></div></div>
+    <div class="card"><div class="in"><div class="face"><div class="art glow"><i></i></div><div class="name">Glow</div><div class="sub">box-shadow</div></div>
+      <div class="face back"><pre><b>box-shadow</b>:
+  0 0 44px hsl(var(--h) 100% 65%),
+  inset 0 0 34px hsl(...);</pre></div></div></div>
+    <div class="card"><div class="in"><div class="face"><div class="art morph"><i></i></div><div class="name">Morph</div><div class="sub">border-radius</div></div>
+      <div class="face back"><pre><b>border-radius</b>:
+  60% 40% 30% 70% /
+  60% 30% 70% 40%;</pre></div></div></div>
+    <div class="card"><div class="in"><div class="face"><div class="art grad"><i></i></div><div class="name">Conic</div><div class="sub">@property</div></div>
+      <div class="face back"><pre>@<b>property</b> --a {
+  syntax: '&lt;angle&gt;';
+}
+<b>conic-gradient</b>(from var(--a))</pre></div></div></div>
   </div>
 </main>
+<div class="themes"><span>Theme</span><label for="t1"></label><label for="t2"></label><label for="t3"></label><label for="t4"></label></div>
+<script>
+const root = document.documentElement, cursor = document.querySelector('.cursor');
+const cur = { x: innerWidth / 2, y: innerHeight / 2, tx: innerWidth / 2, ty: innerHeight / 2 };
+addEventListener('pointermove', e => {
+  cur.tx = e.clientX; cur.ty = e.clientY;
+  root.style.setProperty('--mx', (e.clientX / innerWidth - .5).toFixed(3));
+  root.style.setProperty('--my', (e.clientY / innerHeight - .5).toFixed(3));
+  root.style.setProperty('--cx', e.clientX + 'px');
+  root.style.setProperty('--cy', e.clientY + 'px');
+});
+(function follow() {
+  cur.x += (cur.tx - cur.x) * .2; cur.y += (cur.ty - cur.y) * .2;
+  cursor.style.transform = `translate(${cur.x}px,${cur.y}px)`;
+  requestAnimationFrame(follow);
+})();
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('pointermove', e => {
+    const r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    card.style.setProperty('--ry', ((x - .5) * 24).toFixed(1) + 'deg');
+    card.style.setProperty('--rx', ((.5 - y) * 24).toFixed(1) + 'deg');
+    card.querySelectorAll('.face').forEach(f => { f.style.setProperty('--px', x * 100 + '%'); f.style.setProperty('--py', y * 100 + '%'); });
+  });
+  card.addEventListener('pointerenter', () => cursor.classList.add('big'));
+  card.addEventListener('pointerleave', () => { cursor.classList.remove('big'); card.style.setProperty('--rx', '0deg'); card.style.setProperty('--ry', '0deg'); });
+  card.addEventListener('click', () => card.classList.toggle('flip'));
+});
+</script>
 </body>
 </html>
