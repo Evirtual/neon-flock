@@ -5,12 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Neon Flock</title>
 <style>
+  @view-transition { navigation: auto; }
   html,body{margin:0;height:100%;background:#05060f;overflow:hidden;font-family:system-ui,sans-serif;color:#cfe}
-  canvas{display:block;width:100vw;height:100vh;cursor:crosshair}
-  #ui{position:fixed;top:12px;left:12px;background:#0008;padding:10px 14px;border:1px solid #3ff4;border-radius:10px;font-size:13px;backdrop-filter:blur(6px)}
+  canvas{display:block;width:100vw;height:100vh;cursor:crosshair;animation:fadein 1.6s ease both}
+  @keyframes fadein{from{opacity:0;filter:blur(20px);transform:scale(1.06)}to{opacity:1;filter:none;transform:none}}
+  @keyframes slidein{from{opacity:0;transform:translateY(-14px) scale(.96)}to{opacity:1;transform:none}}
+  #ui{position:fixed;top:12px;left:12px;background:#0008;padding:10px 14px;border:1px solid #3ff4;border-radius:10px;font-size:13px;backdrop-filter:blur(6px);
+    animation:slidein .8s .5s cubic-bezier(.2,.9,.3,1.2) both;transition:box-shadow .4s,border-color .4s}
+  #ui:hover{border-color:#3ffb;box-shadow:0 0 28px #3ff4}
   #ui label{display:block;margin:4px 0}
-  #ui input{vertical-align:middle}
+  #ui input{vertical-align:middle;accent-color:#3ff}
   h1{font-size:15px;margin:0 0 6px;color:#5ff}
+  a.nav{display:inline-block;margin-top:8px;padding:6px 12px;border:1px solid #3ff6;border-radius:999px;color:#5ff;text-decoration:none;transition:background .3s,transform .3s,box-shadow .3s}
+  a.nav:hover{background:#3ff3;transform:translateY(-2px);box-shadow:0 6px 20px #3ff3}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -22,6 +30,7 @@
   <label>Separation <input id="sep" type="range" min="0" max="100" value="60"></label>
   <label>Alignment <input id="ali" type="range" min="0" max="100" value="50"></label>
   <div>Move mouse to attract · hold click to repel</div>
+  <a class="nav" href="shader.html">GPU shader demo →</a>
 </div>
 <script src="flock.js"></script>
 </body>
